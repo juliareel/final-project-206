@@ -59,7 +59,7 @@ def get_crash_data(county_codes, year):
 
 
 def get_county_codes(curr, conn):
-    curr.execute("SELECT county_code, id FROM County_id")
+    curr.execute("SELECT county_code, id FROM Counties")
     county_codes_and_ids = curr.fetchall()
     return(county_codes_and_ids)
 
