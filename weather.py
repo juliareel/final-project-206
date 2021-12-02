@@ -14,19 +14,16 @@ for day in range(number_of_days):
     date_list.append(a_date)
 
 
-def create_request_url(county, date):
-    base_url = 'https://api.weatherstack.com/historical?access_key=c1e596fa44c50dbf9597860a4e84a937'
-    params = '&query='+ county +",Illinois" + '&historical_date=' + date + '&units=f'
-    url = base_url + params
-    print(url)
-    r = requests.get(url)
-    data = json.loads(r.text)
-    return data
-
-list_data = []
-for day in date_list:
-    list_data.append(create_request_url('Boone', day))
-
+def create_request_url(county, list_dates):
+    list_data = []
+    for date in list_dates:
+        base_url = 'https://api.weatherstack.com/historical?access_key=c1e596fa44c50dbf9597860a4e84a937'
+        params = '&query='+ county +",Illinois" + '&historical_date=' + date + '&units=f'
+        url = base_url + params
+        r = requests.get(url)
+        data = json.loads(r.text)
+        list_data.append(data)
+    return list_data
 
 
 def snow_data(data):
@@ -53,15 +50,29 @@ def temp_data(data):
     total_avg_temp = total_temp/len(avg_temp_dict.items())
     return total_avg_temp
 
-yearly_snow = 0
-yearly_temp = 0
-for item in list_data:
-    yearly_snow += snow_data(item)
-    yearly_temp += temp_data(item)
-avg_yearly_temp = int(yearly_temp)/365
-print(yearly_snow)
-print(avg_yearly_temp)
 
 
+def snow_per_county(list_counties):
+    snow_county_dict = {}
+    for county in list_counties:
+        total_snow = 0
+        list_data = create_request_url(county, date_list)
+        for item in list_data:
+            total_snow += snow_data(item)
+        snow_county_dict[county] = total_snow
+    return snow_county_dict
 
+def temp_per_county(list_counties):
+    temp_county_dict = {}
+    for county in list_counties:
+        total_temp = 0
+        list_data = create_request_url(county, date_list)
+        for item in list_data:
+            total_temp += temp_data(item)
+            avg_temp = total_temp / len(list_data)
+        temp_county_dict[county] = avg_temp
+    return temp_county_dict
+
+listy = ['Boone']
+print(temp_per_county(listy))
 
