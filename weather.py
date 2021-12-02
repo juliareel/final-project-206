@@ -7,7 +7,7 @@ import datetime
 import sqlite3
 
 date_list = []
-start_date = datetime.date(2010, 1, 1)
+start_date = datetime.date(2019, 1, 1)
 number_of_days = 365
 
 for day in range(number_of_days):
@@ -74,8 +74,19 @@ def temp_per_county(list_counties):
         temp_county_dict[county] = avg_temp
     return temp_county_dict
 
-listy = ['Boone']
-snowy_dict = temp_per_county(listy)
+def create_county_list(cur, conn):
+    county_list = []
+    cur.execute('SELECT county FROM Counties')
+    conn.commit()
+    list_counties = cur.fetchall()
+    for item in list_counties:
+        county_list.append(item[0])
+
+    return county_list
+
+listy = create_county_list()
+snowy_dict = snow_per_county(listy)
+temper_dict = temp_per_county(listy)
 
 def setUpDatabase(db_name):
     path = os.path.dirname(os.path.abspath(__file__))
@@ -92,8 +103,16 @@ def setUpSnowTable(snow_dict, cur, conn):
         cur.execute("INSERT INTO Total_Snowfall (county,snow_inches) VALUES (?,?)",(item[0],item[1]))
     conn.commit()
 
+def setUpTempTable(temp_dict, cur, conn):
+    value_list = temp_dict.items()
+    cur.execute("CREATE TABLE IF NOT EXISTS Avg_Temp (county TEXT, temp_f INTEGER)")
+    for item in value_list:
+        cur.execute("INSERT INTO Avg_Temp (county,temp_f) VALUES (?,?)",(item[0],item[1]))
+    conn.commit()
+
 def main():
     cur, conn = setUpDatabase('Weather_Crash_Data_Illinois.db')
     setUpSnowTable(snowy_dict, cur, conn)
+    setUpTempTable(temper_dict, cur, conn)
 
 main()
