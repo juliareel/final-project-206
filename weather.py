@@ -4,6 +4,7 @@ import os
 import re
 import requests
 import datetime
+import sqlite3
 
 date_list = []
 start_date = datetime.date(2010, 1, 1)
@@ -74,5 +75,25 @@ def temp_per_county(list_counties):
     return temp_county_dict
 
 listy = ['Boone']
-print(temp_per_county(listy))
+snowy_dict = temp_per_county(listy)
 
+def setUpDatabase(db_name):
+    path = os.path.dirname(os.path.abspath(__file__))
+    conn = sqlite3.connect(path+'/'+db_name)
+    cur = conn.cursor()
+    return cur, conn
+
+
+
+def setUpSnowTable(snow_dict, cur, conn):
+    value_list = snow_dict.items()
+    cur.execute("CREATE TABLE IF NOT EXISTS Total_Snowfall (county TEXT, snow_inches INTEGER)")
+    for item in value_list:
+        cur.execute("INSERT INTO Total_Snowfall (county,snow_inches) VALUES (?,?)",(item[0],item[1]))
+    conn.commit()
+
+def main():
+    cur, conn = setUpDatabase('Weather_Crash_Data_Illinois.db')
+    setUpSnowTable(snowy_dict, cur, conn)
+
+main()
