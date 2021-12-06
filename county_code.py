@@ -73,31 +73,6 @@ def create_request_url(year, county_code):
     return base_url.format(year, year, county_code)
 
 def get_crash_data(county_codes, year):
-    # info_per_county_code = {}
-    # for county in county_codes:
-    #     county_info = {}
-    #     info_per_county_code[county[0]] = county_info
-    #     try:
-    #         request_url = create_request_url(year, str(county[0]))
-    #         r = requests.get(request_url)
-    #         data = r.text
-    #         data_list = json.loads(data)
-    #     except:
-    #         print("Exception")
-    #         return None
-
-    #     num_fatal_crashes = data_list['Count']
-    #     total_fatalities = 0
-
-    #     for crash in data_list['Results'][0]:
-    #         total_fatalities += int(crash['FATALS'])
-
-    #     county_info['num_fatal_crashes'] = num_fatal_crashes
-    #     county_info['num_fatalities'] = total_fatalities
-    #     county_info['year'] = int(year)
-    #     county_info['id'] = county[1]
-    
-    # return info_per_county_code
     info_per_county_code = []
     for county in county_codes:
         try:
@@ -182,6 +157,115 @@ def setUpCrashTable(data, curr, conn):
     conn.commit()
 
 
+def joinPopFatal(curr, conn):
+    curr.execute("SELECT Counties.county, Counties.population, Crashes.num_fatalities FROM Counties JOIN Crashes ON Counties.id = Crashes.county_id")
+    lst = []
+    for row in curr:
+        lst.append(row)
+
+    ret_lst = sorted(lst, key = lambda x: x[1], reverse=True)
+
+    return ret_lst[0:10]
+
+
+def creatDictFatal(lst):
+    dict_return = {}
+    for l in lst:
+        dict_return[l[0]] = l[2]
+
+    return dict_return
+
+def barchart_county_and_fatalities(county_dict):
+    
+    y = county_dict.values()
+    x = county_dict.keys()
+    csfont = {'fontname':'MS Serif'}
+    hfont = {'fontname':'Helvetica'}
+
+    plt.title('Fatalities From Car Crashes in the Top 10 Populated Illinois Counties in 2019',**csfont)
+    plt.xlabel('Top Ten Populated Illinois Counties', **hfont)
+    plt.ylabel('Number of Car Crash Fatalties', **hfont)
+    plt.bar(x,y, color = 'coral')
+    plt.xticks(rotation = 90)
+    plt.gcf().subplots_adjust(bottom=0.40)   
+    plt.show()
+
+
+
+def creatDictPop(lst):
+    dict_return = {}
+    for l in lst:
+        dict_return[l[0]] = l[1]
+
+    return dict_return
+
+def barchart_county_and_pop(county_dict):
+    
+    y = county_dict.values()
+    x = county_dict.keys()
+    csfont = {'fontname':'MS Serif'}
+    hfont = {'fontname':'Helvetica'}
+
+    plt.title('Population in the Top 10 Populated Illinois Counties in 2019',**csfont)
+    plt.xlabel('Top Ten Populated Illinois Counties', **hfont)
+    plt.ylabel('Population (by million)', **hfont)
+    plt.bar(x,y, color = 'skyblue')
+    plt.xticks(rotation = 90)
+    plt.gcf().subplots_adjust(bottom=0.40)   
+    plt.show()
+
+def write_percentage_fatalities_per_county(filename, curr, conn):
+
+    path = os.path.dirname(os.path.abspath(__file__)) + os.sep
+    #Writes the results of the average_followers_per_song() function to a file.
+    outFile = open(path + filename, "w")
+    outFile.write("Percentage of Fatal Car Crashes per Population in Illinois Counties in 2019\n")
+    outFile.write("=======================================================================\n\n")
+    outFile.write("County Name:  Percentage of Fatalities per Population:  " + '\n' + '\n')
+    curr.execute("SELECT Counties.county, Counties.population, Crashes.num_fatalities FROM Counties JOIN Crashes ON Counties.id = Crashes.county_id")
+    lst = []
+    for row in curr:
+        lst.append(row)
+
+    lst_of_county_fatalities = sorted(lst, key = lambda x: x[0])
+
+    lst_of_percentages = []
+
+    for data in lst_of_county_fatalities:
+
+        perc = float(data[2]) / float(data[1])
+        perc = perc * 100
+        lst_of_percentages.append((data[0], perc, data[1]))
+        outFile.write(str(data[0]) + ":  " + str(perc) + '\n' + '\n')
+    outFile.close()
+
+    ret_lst = sorted(lst_of_percentages, key = lambda x: x[2], reverse=True)
+    ret_lst = ret_lst[0:10]
+
+    perc_dict = {}
+    for data in ret_lst:
+        perc_dict[data[0]] = data[1]
+
+
+    return perc_dict
+    
+def barchart_perc(percentages):
+    
+    y = percentages.values()
+    x = percentages.keys()
+    csfont = {'fontname':'MS Serif'}
+    hfont = {'fontname':'Helvetica'}
+
+    plt.title('Ratio of Car Crash Fatalities by Population in 2019 in Illinois' ,**csfont)
+    plt.xlabel('Top Ten Populated Illinois Counties', **hfont)
+    plt.ylabel('Ratio of Car Crash Fatilites by Total Population', **hfont)
+    plt.bar(x,y, color = 'limegreen')
+    plt.xticks(rotation = 90)
+    plt.gcf().subplots_adjust(bottom=0.40)   
+    plt.show()
+
+
+
 def main():
     #run 4 times to get all 100 rows on data into database
     data = county_soup('list_of_counties_in_Illinois.html')
@@ -196,7 +280,23 @@ def main():
 
     for i in range(5):
         setUpCrashTable(data, curr, conn)
-   
+
+
+    lst_of_county_fatalities = joinPopFatal(curr, conn)
+
+    #calculates percentage of fatalities per county and puts them into a text file
+    dict_percent = write_percentage_fatalities_per_county("ratio_of_fatalities.txt", curr, conn)
+    barchart_perc(dict_percent)
+
+
+    dict_for_visual = creatDictFatal(lst_of_county_fatalities)
+    barchart_county_and_fatalities(dict_for_visual)
+
+
+    dict_for_visual_pop = creatDictPop(lst_of_county_fatalities)
+    barchart_county_and_pop(dict_for_visual_pop)
+
+
 
 
 if __name__ == '__main__':
