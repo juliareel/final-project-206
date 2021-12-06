@@ -23,17 +23,16 @@ def create_request_url(county, list_dates):
         url = base_url + params
         r = requests.get(url)
         data = json.loads(r.text)
-        list_data.append(data)
+        list_data.append(data['historical'])
     return list_data
 
 
 def snow_data(data):
     snow_dict = {}
     total_snow = 0
-    target = data['historical']
-    list_dates = target.keys()
+    list_dates = data.keys()
     for item in list_dates:
-        snow_dict[item]= target[item]['totalsnow']
+        snow_dict[item]= data[item]['totalsnow']
     for val in snow_dict.items():
         total_snow += int(val[1])
     return total_snow
@@ -42,10 +41,9 @@ def snow_data(data):
 def temp_data(data):
     avg_temp_dict= {}
     total_temp = 0
-    target = data['historical']
-    list_dates = target.keys()
+    list_dates = data.keys()
     for item in list_dates:
-        avg_temp_dict[item]= target[item]['avgtemp']
+        avg_temp_dict[item]= data[item]['avgtemp']
     for val in avg_temp_dict.items():
         total_temp += int(val[1])
     total_avg_temp = total_temp/len(avg_temp_dict.items())
@@ -74,6 +72,8 @@ def temp_per_county(list_counties):
         temp_county_dict[county] = avg_temp
     return temp_county_dict
 
+
+
 def create_county_list(cur, conn):
     county_list = []
     cur.execute('SELECT county FROM Counties')
@@ -84,9 +84,23 @@ def create_county_list(cur, conn):
 
     return county_list
 
-listy = create_county_list()
-snowy_dict = snow_per_county(listy)
-temper_dict = temp_per_county(listy)
+def write_snow_cache(CACHE_FNAME, list_counties):
+    fw = open(CACHE_FNAME, "w")
+
+    dicto = json.dumps(snow_per_county(list_counties))
+
+    fw.write(dicto)
+
+    fw.close()
+
+def write_temp_cache(CACHE_FNAME, list_counties):
+    fw = open(CACHE_FNAME, "w")
+
+    dicto = json.dumps(temp_per_county(list_counties))
+
+    fw.write(dicto)
+
+    fw.close()
 
 def setUpDatabase(db_name):
     path = os.path.dirname(os.path.abspath(__file__))
@@ -96,23 +110,32 @@ def setUpDatabase(db_name):
 
 
 
-def setUpSnowTable(snow_dict, cur, conn):
-    value_list = snow_dict.items()
-    cur.execute("CREATE TABLE IF NOT EXISTS Total_Snowfall (county TEXT, snow_inches INTEGER)")
-    for item in value_list:
-        cur.execute("INSERT INTO Total_Snowfall (county,snow_inches) VALUES (?,?)",(item[0],item[1]))
-    conn.commit()
+# def setUpSnowTable(snow_dict, cur, conn):
+#     value_list = snow_dict.items()
+#     cur.execute("CREATE TABLE IF NOT EXISTS Total_Snowfall (county TEXT, snow_inches INTEGER)")
+#     for item in value_list:
+#         cur.execute("INSERT INTO Total_Snowfall (county,snow_inches) VALUES (?,?)",(item[0],item[1]))
+#     conn.commit()
 
-def setUpTempTable(temp_dict, cur, conn):
-    value_list = temp_dict.items()
-    cur.execute("CREATE TABLE IF NOT EXISTS Avg_Temp (county TEXT, temp_f INTEGER)")
-    for item in value_list:
-        cur.execute("INSERT INTO Avg_Temp (county,temp_f) VALUES (?,?)",(item[0],item[1]))
-    conn.commit()
+# def setUpTempTable(temp_dict, cur, conn):
+#     value_list = temp_dict.items()
+#     cur.execute("CREATE TABLE IF NOT EXISTS Avg_Temp (county TEXT, temp_f INTEGER)")
+#     for item in value_list:
+#         cur.execute("INSERT INTO Avg_Temp (county,temp_f) VALUES (?,?)",(item[0],item[1]))
+#     conn.commit()
 
+# #run four times to get 4 sets of 25 rows at a time
 def main():
+    
     cur, conn = setUpDatabase('Weather_Crash_Data_Illinois.db')
-    setUpSnowTable(snowy_dict, cur, conn)
-    setUpTempTable(temper_dict, cur, conn)
+    listy = create_county_list(cur, conn)
+    write_snow_cache('Snow_Data.json',listy)
+    #write_temp_cache('Temp_Data.json', listy)
+#     setUpSnowTable(snowy_dict, cur, conn)
+#     setUpTempTable(temper_dict, cur, conn)
+#     return listy
+
+    
+    
 
 main()
