@@ -15,6 +15,12 @@ import matplotlib.pyplot as plt
 
 
 def county_soup(filename):
+    """
+    Takes in a filename (string) as an input. Opens the file (downloaded HTML file from Wikipedia) and creates a BeautifulSoup object after 
+    retrieving content from the passed in file (Wikipedia page). Parses through the BeautifulSoup object and captures the county name and 
+    county ID number. Adds these to a list of tuples and returns the list of tuples looking like (county name, county ID #). 
+    """
+
     with open(os.path.join(os.path.abspath(os.path.dirname(__file__)), filename), 'r') as f:
         r = f.read()
    
@@ -43,7 +49,10 @@ def county_soup(filename):
 
 
 def population_per_county(data):
-
+    """ 
+    Takes in no inputs. Creates a BeautifulSoup object after retrieving content from url. Parses through the BeautifulSoup object and captures
+    the population for each county (listed in alphabetical order). Returns a list of population numbers that is organized by couny name alphabetically. 
+    """
     url = "https://www.indexmundi.com/facts/united-states/quick-facts/illinois/population#table"
     resp = requests.get(url)
 
@@ -69,10 +78,35 @@ def population_per_county(data):
     return lst_populations
 
 def create_request_url(year, county_code):
+    """
+    Takes in a year as a string and a county_code as an integer.
+    Creates and returns the url that will be processed NHTSA Crash data API.
+    """
     base_url = "https://crashviewer.nhtsa.dot.gov/CrashAPI/crashes/GetCrashesByLocation?fromCaseYear={}&toCaseYear={}&state=17&county={}&format=json"
     return base_url.format(year, year, county_code)
 
+
+
+def get_county_codes(curr, conn):
+    """
+    Takes in the database cursor and connection as inputs.
+    Collects all of the county codes and county_ids from the Counties table in the database.
+    Returns a list of tuples in the format (county_code, id)
+    E.g. [(1,0), (3,1)...]
+    """
+    curr.execute("SELECT county_code, id FROM Counties")
+    county_codes_and_ids = curr.fetchall()
+    return(county_codes_and_ids)
+
 def get_crash_data(county_codes, year):
+    """
+    Takes in the county_code/id list of tuples that was returned by get_county_codes().
+    Takes in a year as an int. 
+    Loops through the counties in the list of tuples and creates a request url.
+    Processes the JSON data into a dictionary.
+    Creates and returns a list of tuples each containing the number of fatal crashes, county_id, year, 
+    and number of total fatalities for each county.
+    """
     info_per_county_code = []
     for county in county_codes:
         try:
@@ -95,14 +129,10 @@ def get_crash_data(county_codes, year):
 
     return info_per_county_code
 
-
-def get_county_codes(curr, conn):
-    curr.execute("SELECT county_code, id FROM Counties")
-    county_codes_and_ids = curr.fetchall()
-    return(county_codes_and_ids)
-
-
 def setUpDatabase(db_name):
+    """
+    Takes in the name of the database, a string, as the input. Returns the cursor and connection to the database.
+    """
     path = os.path.dirname(os.path.abspath(__file__))
     conn = sqlite3.connect(path+'/'+db_name)
     cur = conn.cursor()
@@ -110,6 +140,10 @@ def setUpDatabase(db_name):
 
 
 def inputCountyData(data, pop_data, curr, conn):
+    """
+    Takes in a the list of tuples with county name and county id, a list of populattion per county, the database cursor and the database 
+    connections as inputs. Creates a table that will hold an id number, county name, county code, and that county's population. Returns nothing.
+    """
     curr.execute('CREATE TABLE IF NOT EXISTS Counties (id INTEGER PRIMARY KEY, county TEXT, county_code INTEGER, population INTEGER)')
 
     start = None
@@ -134,6 +168,10 @@ def inputCountyData(data, pop_data, curr, conn):
 
 
 def setUpCrashTable(data, curr, conn):
+    """
+    Takes in the list of tuples returned in get_crash_data() as input, along with the database cursor and connection. Inputs the data 
+    into the table 25 rows at a time. Function does not return anything.
+    """
     curr.execute("CREATE TABLE IF NOT EXISTS Crashes (county_id INTEGER PRIMARY KEY, num_fatal_crashes INTEGER, num_fatalities INTEGER)")
     
     start = None
@@ -158,6 +196,12 @@ def setUpCrashTable(data, curr, conn):
 
 
 def joinPopFatal(curr, conn):
+    """
+    Takes in the database cursor and the database connections as inputs. Joins the two tables based off of the county id numbers and selects the county name,
+    population, and number of car crash fatalities for the given year. Returns a list of tuples that is sorted by highest to lowest population a table that 
+    holds tuples with (county name, population, and number of fatal car crashes).
+    
+    """
     curr.execute("SELECT Counties.county, Counties.population, Crashes.num_fatalities FROM Counties JOIN Crashes ON Counties.id = Crashes.county_id")
     lst = []
     for row in curr:
@@ -169,6 +213,10 @@ def joinPopFatal(curr, conn):
 
 
 def creatDictFatal(lst):
+    """
+    Takes in a list of tuples that hold (county name, population, and number of fatal car crashes). Returns a dictionary where the key is the county name and
+    the value is the number of fatalities in that county.
+    """
     dict_return = {}
     for l in lst:
         dict_return[l[0]] = l[2]
@@ -176,7 +224,10 @@ def creatDictFatal(lst):
     return dict_return
 
 def barchart_county_and_fatalities(county_dict):
-    
+    """
+    Takes in a dictionary of where the key is the county name and the value is the number of fatalities in that county. Creates a bar chart where the key is x-axis
+    and value is y-axis.
+    """
     y = county_dict.values()
     x = county_dict.keys()
     csfont = {'fontname':'MS Serif'}
@@ -193,6 +244,10 @@ def barchart_county_and_fatalities(county_dict):
 
 
 def creatDictPop(lst):
+    """
+    Takes in a list of tuples that hold (county name, population, and number of fatal car crashes). Returns a dictionary where the key is the county name and
+    the value is the population in that county.
+    """ 
     dict_return = {}
     for l in lst:
         dict_return[l[0]] = l[1]
@@ -200,7 +255,10 @@ def creatDictPop(lst):
     return dict_return
 
 def barchart_county_and_pop(county_dict):
-    
+    """
+    Takes in a dictionary of where the key is the county name and the value is the population in that county. Creates a bar chart where the key is x-axis
+    and value is y-axis.
+    """
     y = county_dict.values()
     x = county_dict.keys()
     csfont = {'fontname':'MS Serif'}
@@ -215,13 +273,16 @@ def barchart_county_and_pop(county_dict):
     plt.show()
 
 def write_percentage_fatalities_per_county(filename, curr, conn):
-
+    """
+    Takes in a filename (string), the database cursor, and the database connections as inputs. Creates a file and writes the county name and that county's
+    calculated ratio of fatalities per population. Returns a dictionary wehre the key is the county name and value is that calculated ratio/percentage.
+    """
     path = os.path.dirname(os.path.abspath(__file__)) + os.sep
     #Writes the results of the average_followers_per_song() function to a file.
     outFile = open(path + filename, "w")
     outFile.write("Percentage of Fatal Car Crashes per Population in Illinois Counties in 2019\n")
     outFile.write("=======================================================================\n\n")
-    outFile.write("County Name:  Percentage of Fatalities per Population:  " + '\n' + '\n')
+    outFile.write("County Name:  Percentage of Fatalities per Population  " + '\n' + '\n')
     curr.execute("SELECT Counties.county, Counties.population, Crashes.num_fatalities FROM Counties JOIN Crashes ON Counties.id = Crashes.county_id")
     lst = []
     for row in curr:
@@ -250,7 +311,10 @@ def write_percentage_fatalities_per_county(filename, curr, conn):
     return perc_dict
     
 def barchart_perc(percentages):
-    
+    """
+    Takes in a dictionary of where the key is the county name and the value is the ratio of fatalities by population. Creates a bar chart where the key is x-axis
+    and value is y-axis.
+    """
     y = percentages.values()
     x = percentages.keys()
     csfont = {'fontname':'MS Serif'}
@@ -267,7 +331,9 @@ def barchart_perc(percentages):
 
 
 def main():
-    #run 4 times to get all 100 rows on data into database
+    """
+    Takes no inputs and returns nothing. Selects data from database in order to create visualaztions (three bar charts).
+    """
     data = county_soup('list_of_counties_in_Illinois.html')
     data_pop = population_per_county(data)
     curr, conn = setUpDatabase('Weather_Crash_Data_Illinois.db')
@@ -284,10 +350,6 @@ def main():
 
     lst_of_county_fatalities = joinPopFatal(curr, conn)
 
-    #calculates percentage of fatalities per county and puts them into a text file
-    dict_percent = write_percentage_fatalities_per_county("ratio_of_fatalities.txt", curr, conn)
-    barchart_perc(dict_percent)
-
 
     dict_for_visual = creatDictFatal(lst_of_county_fatalities)
     barchart_county_and_fatalities(dict_for_visual)
@@ -295,6 +357,12 @@ def main():
 
     dict_for_visual_pop = creatDictPop(lst_of_county_fatalities)
     barchart_county_and_pop(dict_for_visual_pop)
+
+
+    #calculates percentage of fatalities per county and puts them into a text file
+    dict_percent = write_percentage_fatalities_per_county("ratio_of_fatalities.txt", curr, conn)
+    barchart_perc(dict_percent)
+
 
 
 
