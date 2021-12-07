@@ -23,7 +23,10 @@ def create_request_url(county, list_dates):
         url = base_url + params
         r = requests.get(url)
         data = json.loads(r.text)
-        list_data.append(data['historical'])
+        try:
+            list_data.append(data['historical'])
+        except:
+            continue
     return list_data
 
 
@@ -32,7 +35,10 @@ def snow_data(data):
     total_snow = 0
     list_dates = data.keys()
     for item in list_dates:
-        snow_dict[item]= data[item]['totalsnow']
+        try:
+            snow_dict[item]= data[item]['totalsnow']
+        except:
+            continue
     for val in snow_dict.items():
         total_snow += int(val[1])
     return total_snow
@@ -43,7 +49,10 @@ def temp_data(data):
     total_temp = 0
     list_dates = data.keys()
     for item in list_dates:
-        avg_temp_dict[item]= data[item]['avgtemp']
+        try:
+            avg_temp_dict[item]= data[item]['avgtemp']
+        except:
+            continue
     for val in avg_temp_dict.items():
         total_temp += int(val[1])
     total_avg_temp = total_temp/len(avg_temp_dict.items())
@@ -129,8 +138,13 @@ def main():
     
     cur, conn = setUpDatabase('Weather_Crash_Data_Illinois.db')
     listy = create_county_list(cur, conn)
-    write_snow_cache('Snow_Data.json',listy)
-    #write_temp_cache('Temp_Data.json', listy)
+    first_set = listy[0:25]
+    # second_set = listy[25:50]
+    # third_set = [50:75]
+
+
+    write_snow_cache('Snow_Data.json',first_set)
+    write_temp_cache('Temp_Data.json', first_set)
 #     setUpSnowTable(snowy_dict, cur, conn)
 #     setUpTempTable(temper_dict, cur, conn)
 #     return listy
