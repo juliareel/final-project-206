@@ -138,16 +138,26 @@ def main():
     
     cur, conn = setUpDatabase('Weather_Crash_Data_Illinois.db')
     listy = create_county_list(cur, conn)
-    first_set = listy[0:25]
-    # second_set = listy[25:50]
-    # third_set = [50:75]
+    #first_set = listy[0:25]
+    #second_set = listy[25:50]
+    third_set = listy[50:75]
+    # fourth_set = listy[75:100]
+    # fifth_set = listy[100:]
 
 
-    write_snow_cache('Snow_Data.json',first_set)
-    write_temp_cache('Temp_Data.json', first_set)
-#     setUpSnowTable(snowy_dict, cur, conn)
-#     setUpTempTable(temper_dict, cur, conn)
-#     return listy
+
+    # write_snow_cache('Snow_Data.json',first_set)
+    # write_temp_cache('Temp_Data.json', first_set)
+    #write_snow_cache('Snow_Data_pt2.json', second_set)
+    #write_temp_cache('Temp_Data_pt2.json', second_set)
+    write_snow_cache('Snow_Data_pt3.json', third_set)
+    write_temp_cache('Temp_Data_pt3.json', third_set)
+    # write_snow_cache('Snow_Data_pt4.json', fourth_set)
+    # write_temp_cache('Temp_Data_pt4.json', fourth_set)
+    # write_snow_cache('Snow_Data_pt5.json', fifth_set)
+    # write_temp_cache('Temp_Data_pt5.json', fifth_set)
+
+
 
     
     
