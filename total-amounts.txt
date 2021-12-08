@@ -1,0 +1,11 @@
+Total population, total amount of fatal car crashes, total snowfall (in), and average temperature in Illinois in 2019
+=======================================================================
+
+The total population in Illinois in 2019: 12741080
+
+The total number of fatal crashes in Illinois in 2019: 938
+
+The total amount of snowfall (inches) in Illinois in 2019: 1820
+
+The average temperature (Fahrenheit) in Illinois in 2019: 53.04053392968877
+

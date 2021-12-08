@@ -1,7 +1,7 @@
 Percentage of Fatal Car Crashes per Population in Illinois Counties in 2019
 =======================================================================
 
-County Name:  Percentage of Fatalities per Population:  
+County Name:  Percentage of Fatalities per Population  
 
 Adams:  0.0015222785465284438
 
