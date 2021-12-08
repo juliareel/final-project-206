@@ -123,7 +123,57 @@ def visualization(lst_tups):
     fig2.show()
 
 
+def write_calculations(filename, curr, conn):
+    """
+    Takes in a filename (string), the database cursor, and the database connections as inputs. Creates a file, selects from database,
+    and writes the total population, total amount of fatal car crashes, total snowfall (in), and average temperature in Illinois in 
+    2019 to the file. Returns nothing. 
+    """
+    path = os.path.dirname(os.path.abspath(__file__)) + os.sep
+    #Writes the results of the average_followers_per_song() function to a file.
+    outFile = open(path + filename, "w")
+    outFile.write("Total population, total amount of fatal car crashes, total snowfall (in), and average temperature in Illinois in 2019\n")
+    outFile.write("=======================================================================\n\n")
 
+
+    curr.execute("SELECT population FROM Counties")
+    population = curr.fetchall()
+
+    total_pop = 0
+    for p in population:
+        total_pop = total_pop + p[0]
+
+    outFile.write("The total population in Illinois in 2019: " + str(total_pop) + '\n' + '\n')
+
+
+    curr.execute("SELECT num_fatal_crashes FROM Crashes")
+    crashes = curr.fetchall()
+
+    total_crashes = 0
+    for c in crashes:
+        total_crashes = total_crashes + c[0]
+
+    outFile.write("The total number of fatal crashes in Illinois in 2019: " + str(total_crashes) + '\n' + '\n')
+
+
+    curr.execute("SELECT snow_inches FROM Total_Snowfall")
+    snow = curr.fetchall()
+
+    total_snowfall = 0
+    for s in snow:
+        total_snowfall = total_snowfall + s[0]
+
+    outFile.write("The total amount of snowfall (inches) in Illinois in 2019: " + str(total_snowfall) + '\n' + '\n')
+
+
+    curr.execute("SELECT temp_f FROM Avg_Temp")
+    temps = curr.fetchall()
+
+    total_temp = 0
+    for t in temps:
+        total_temp = total_temp + t[0]
+
+    outFile.write("The average temperature (Fahrenheit) in Illinois in 2019: " + str(total_temp/len(temps)) + '\n' + '\n')
 
 def main():
     """
@@ -141,6 +191,7 @@ def main():
     #setUpTempTable("Temp_Data_pt3.json", curr, conn)
     #setUpTempTable("Temp_Data_pt4.json", curr, conn)
 
+    write_calculations("total-amounts.txt", curr, conn)
 
 
     lst_tups = summary_for_scatterplot(curr, conn)
