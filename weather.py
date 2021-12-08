@@ -166,44 +166,32 @@ def setUpDatabase(db_name):
     return cur, conn
 
 
-
-# def setUpSnowTable(snow_dict, cur, conn):
-#     value_list = snow_dict.items()
-#     cur.execute("CREATE TABLE IF NOT EXISTS Total_Snowfall (county TEXT, snow_inches INTEGER)")
-#     for item in value_list:
-#         cur.execute("INSERT INTO Total_Snowfall (county,snow_inches) VALUES (?,?)",(item[0],item[1]))
-#     conn.commit()
-
-# def setUpTempTable(temp_dict, cur, conn):
-#     value_list = temp_dict.items()
-#     cur.execute("CREATE TABLE IF NOT EXISTS Avg_Temp (county TEXT, temp_f INTEGER)")
-#     for item in value_list:
-#         cur.execute("INSERT INTO Avg_Temp (county,temp_f) VALUES (?,?)",(item[0],item[1]))
-#     conn.commit()
-
-# #run four times to get 4 sets of 25 rows at a time
 def main():
+    """
+    This function allows us to pull data from the api 25 requests at time.
     
+    """
+   
     cur, conn = setUpDatabase('Weather_Crash_Data_Illinois.db')
     listy = create_county_list(cur, conn)
-    #first_set = listy[0:25]
-    #second_set = listy[25:50]
-    #third_set = listy[50:75]
+    first_set = listy[0:25]
+    second_set = listy[25:50]
+    third_set = listy[50:75]
     fourth_set = listy[75:100]
-    # fifth_set = listy[100:]
+    fifth_set = listy[100:]
 
 
 
-    # write_snow_cache('Snow_Data.json',first_set)
-    # write_temp_cache('Temp_Data.json', first_set)
-    #write_snow_cache('Snow_Data_pt2.json', second_set)
-    #write_temp_cache('Temp_Data_pt2.json', second_set)
-    #write_snow_cache('Snow_Data_pt3.json', third_set)
-    #write_temp_cache('Temp_Data_pt3.json', third_set)
+    write_snow_cache('Snow_Data.json',first_set)
+    write_temp_cache('Temp_Data.json', first_set)
+    write_snow_cache('Snow_Data_pt2.json', second_set)
+    write_temp_cache('Temp_Data_pt2.json', second_set)
+    write_snow_cache('Snow_Data_pt3.json', third_set)
+    write_temp_cache('Temp_Data_pt3.json', third_set)
     write_snow_cache('Snow_Data_pt4.json', fourth_set)
     write_temp_cache('Temp_Data_pt4.json', fourth_set)
-    # write_snow_cache('Snow_Data_pt5.json', fifth_set)
-    # write_temp_cache('Temp_Data_pt5.json', fifth_set)
+    write_snow_cache('Snow_Data_pt5.json', fifth_set)
+    write_temp_cache('Temp_Data_pt5.json', fifth_set)
 
 
 
