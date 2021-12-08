@@ -117,7 +117,7 @@ def visualization(lst_tups):
     #scatterplot
 
     fig2 = go.Figure([go.Bar(x=temp, y=crashes)])
-    fig2.update_traces(marker_color="rgb(123, 164, 224)", marker_line_color="rgb(12, 62, 133)", marker_line_width=1, hoverinfo = "text",
+    fig2.update_traces(marker_color="rgb(123, 164, 224)", marker_line_color="rgb(12, 62, 133)", marker_line_width=2, width=.05, hoverinfo = "text",
     hovertext=name)
     fig2.update_layout(title_text = title_str2, xaxis_title="Average Temperature (F)", yaxis_title="Fatal Car Crashes")
     fig2.show()
@@ -183,13 +183,25 @@ def main():
 
     curr, conn = setUpDatabase('Weather_Crash_Data_Illinois.db')
     setUpSnowTable("Snow_Data.json", curr, conn)
-    setUpSnowTable("Snow_Data_pt2.json", curr, conn)
-    #setUpSnowTable("Snow_Data_pt3.json", curr, conn)
-    #setUpSnowTable("Snow_Data_pt4.json", curr, conn)
     setUpTempTable("Temp_Data.json", curr, conn)
-    setUpTempTable("Temp_Data_pt2.json", curr, conn)
-    #setUpTempTable("Temp_Data_pt3.json", curr, conn)
-    #setUpTempTable("Temp_Data_pt4.json", curr, conn)
+
+
+    str_snow = "Snow_Data_pt"
+
+    i = 2
+    for count in range(4):
+        count = 2 + count
+        str_final = str_snow + str(count)+ ".json"
+        setUpSnowTable(str_final, curr, conn)
+
+    str_temp = "Temp_Data_pt"
+    j = 2
+    for cont in range(4):
+        cont = j + cont
+        str_fin = str_temp + str(cont) + ".json"
+        setUpTempTable(str_fin, curr, conn)
+    
+   
 
     write_calculations("total-amounts.txt", curr, conn)
 

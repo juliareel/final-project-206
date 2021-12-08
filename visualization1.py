@@ -63,7 +63,7 @@ def barchart_county_and_fatalities(county_dict):
     """
     y = county_dict.values()
     x = county_dict.keys()
-    csfont = {'fontname':'MS Serif'}
+    csfont = {'fontname':'Helvetica'}
     hfont = {'fontname':'Helvetica'}
 
     plt.title('Fatalities From Car Crashes in the Top 10 Populated Illinois Counties in 2019',**csfont)
@@ -94,7 +94,7 @@ def barchart_county_and_pop(county_dict):
     """
     y = county_dict.values()
     x = county_dict.keys()
-    csfont = {'fontname':'MS Serif'}
+    csfont = {'fontname':'Helvetica'}
     hfont = {'fontname':'Helvetica'}
 
     plt.title('Population in the Top 10 Populated Illinois Counties in 2019',**csfont)
