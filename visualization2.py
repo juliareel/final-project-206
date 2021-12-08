@@ -21,6 +21,12 @@ def setUpDatabase(db_name):
 
 
 def setUpSnowTable(file_name, curr, conn):
+    """
+    Takes in the filename of the json file loaded from the API, the database cursor, and the database connections as inputs. Creates a table called
+    Total_Snowfall and inserts the county_id and total snowfall for that county. Returns nothing. 
+    """
+
+
     snow_data = open(file_name, 'r')
     snow_data_dict = json.loads(snow_data.read())
     value_list = snow_data_dict.items()
@@ -33,6 +39,11 @@ def setUpSnowTable(file_name, curr, conn):
     snow_data.close()
 
 def setUpTempTable(file_name, cur, conn):
+    """
+    Takes in the filename of the json file loaded from the API, the database cursor, and the database connections as inputs. Creates a table called
+    Avg_Temp and inserts the county_id and average temperature of that county. Returns nothing. 
+    """
+
     temp_data = open(file_name, 'r')
     temp_data_dict = json.loads(temp_data.read())
     value_list = temp_data_dict.items()
@@ -46,6 +57,10 @@ def setUpTempTable(file_name, cur, conn):
 
 
 def summary_for_scatterplot(cur, conn):
+    """
+    Takes in the database cursor and the database connections as inputs. Joins four tables based off of the county id numbers and selects the county name,
+    number of fatal car crashes, total snowfall, and average temperature. Returns a list of tuples of these selected values. 
+    """
 
     cur.execute(""" SELECT DISTINCT Counties.county, Crashes.num_fatal_crashes, Total_Snowfall.snow_inches, Avg_Temp.temp_f
                     FROM Counties INNER JOIN Crashes ON Counties.id = Crashes.county_id INNER JOIN Total_Snowfall ON 
@@ -111,6 +126,11 @@ def visualization(lst_tups):
 
 
 def main():
+    """
+    Takes no inputs and returns nothing. Creates tables and selects data from database in order to create visualaztions (2 graphs).
+    """
+
+
     curr, conn = setUpDatabase('Weather_Crash_Data_Illinois.db')
     setUpSnowTable("Snow_Data.json", curr, conn)
     setUpSnowTable("Snow_Data_pt2.json", curr, conn)
